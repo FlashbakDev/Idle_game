@@ -5,6 +5,8 @@ using UnityEngine;
 
 public class GameManager : MonoBehaviour {
 
+    [SerializeField] private GameObject factoryPrefab;
+
     public static GameManager instance;
     private GameBoardManager boardScript;
     private GameGUIManager GUIScript;
@@ -12,8 +14,6 @@ public class GameManager : MonoBehaviour {
     private HighInteger money;
 
     private float clock;
-
-    [SerializeField] private float tickSpeed;
 
     void Awake() {
 
@@ -51,21 +51,14 @@ public class GameManager : MonoBehaviour {
         boardScript.SetupScene( 0 );
 
         clock = 0f;
-        tickSpeed = 0.05f;
 
-        money = new HighInteger(0);
+        money = new HighInteger("100000000");
     }
 
     // Update is called once per frame
     void Update () {
 
         clock += Time.deltaTime;
-
-        if ( clock >= tickSpeed) {
-
-            OnTick();
-            clock -= tickSpeed;
-        }
     }
 
     private void OnTick() {

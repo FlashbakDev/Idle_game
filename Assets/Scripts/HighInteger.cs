@@ -5,10 +5,9 @@ using UnityEngine;
 
 public class HighInteger {
 
-    [SerializeField] private static string[] names = { "", "mille", "million", "milliard", "billion", "billiard", "trillion", "trilliard", "quadrillion", "quadrilliard", "quintillion", "quintilliard", "sextillion", "sextilliard", "septillion", "septilliard", "octillion", "octilliard", "nonillion", "nonilliard", "decillion", "decilliard" };
+    [SerializeField] private static string[] suffixes = { "", "mille", "million", "milliard", "billion", "billiard", "trillion", "trilliard", "quadrillion", "quadrilliard", "quintillion", "quintilliard", "sextillion", "sextilliard", "septillion", "septilliard", "octillion", "octilliard", "nonillion", "nonilliard", "decillion", "decilliard" };
 
     [SerializeField] private string number;
-    [SerializeField] private string formatedNumber;
 
     // Constructeurs ===================================================================================================
 
@@ -98,6 +97,28 @@ public class HighInteger {
     public override int GetHashCode() {
 
         return this.number.GetHashCode();
+    }
+
+    public override string ToString() {
+
+        string resultat = "";
+
+        string suffix = ((GetLength() - 1) / 3 < suffixes.Length )?  suffixes[ (GetLength() - 1)/3 ]: "???";
+        if (suffix != suffixes[0] && ( GetLength()%3 != 1 || number[0] != '1') ) suffix = suffix + "s";
+
+        for (int i = 0; i < GetLength(); i ++ ) {
+
+            if ( i%3 == 0 && i != 0 ) { resultat = "," + resultat; }
+
+            resultat = number[GetLength() - i - 1] + resultat;
+        }
+
+        if ( resultat.IndexOf(',') != -1 ) {
+
+            resultat = resultat.Substring( 0, resultat.IndexOf(',') + 4 );
+        }
+
+        return resultat + " " + suffix;
     }
 
     // Surcharge d'opérateurs ===================================================================================================
@@ -199,6 +220,11 @@ public class HighInteger {
         return n1.GetLength() < n2.GetLength();
     }
 
+    public static bool operator <(HighInteger n1, int i1) {
+
+        return n1 < new HighInteger(i1);
+    }
+
     public static bool operator >(HighInteger n1, HighInteger n2) {
 
         if (n1.GetLength() == n2.GetLength()) {
@@ -215,19 +241,14 @@ public class HighInteger {
         return n1.GetLength() > n2.GetLength();
     }
 
-    public static bool operator ==(HighInteger n1, HighInteger n2) {
-
-        return n1.Equals(n2);
-    }
-
-    public static bool operator <(HighInteger n1, int i1) {
-
-        return n1 < new HighInteger(i1);
-    }
-
     public static bool operator >(HighInteger n1, int i1) {
 
         return n1 > new HighInteger(i1);
+    }
+
+    public static bool operator ==(HighInteger n1, HighInteger n2) {
+
+        return n1.HighIntegerNumber.Equals(n2.HighIntegerNumber);
     }
 
     public static bool operator ==(HighInteger n1, int i1) {
@@ -264,65 +285,42 @@ public class HighInteger {
         return new HighInteger( n1 * new HighInteger(i1) );
     }
 
-    public static bool operator <=(HighInteger n1, HighInteger n2) {
+    public static HighInteger operator *(int i1, HighInteger n1) {
 
-        if (n1 == n2) return true;
-
-        if (n1.GetLength() == n2.GetLength()) {
-
-            for (int i = 0; i < n1.GetLength(); i++) {
-
-                if (Convert.ToInt32(n1.HighIntegerNumber[i].ToString(), 10) != Convert.ToInt32(n2.HighIntegerNumber[i].ToString(), 10)) {
-
-                    return Convert.ToInt32(n1.HighIntegerNumber[i].ToString(), 10) < Convert.ToInt32(n2.HighIntegerNumber[i].ToString(), 10);
-                }
-            }
-        }
-
-        return n1.GetLength() < n2.GetLength();
+        return new HighInteger(n1 * new HighInteger(i1));
     }
 
-    public static bool operator >=(HighInteger n1, HighInteger n2) {
+    public static bool operator <=(HighInteger n1, HighInteger n2) {
 
-        if (n1 == n2) return true;
-
-        if (n1.GetLength() == n2.GetLength()) {
-
-            for (int i = 0; i < n1.GetLength(); i++) {
-
-                if (Convert.ToInt32(n1.HighIntegerNumber[i].ToString(), 10) != Convert.ToInt32(n2.HighIntegerNumber[i].ToString(), 10)) {
-
-                    return Convert.ToInt32(n1.HighIntegerNumber[i].ToString(), 10) > Convert.ToInt32(n2.HighIntegerNumber[i].ToString(), 10);
-                }
-            }
-        }
-
-        return n1.GetLength() > n2.GetLength();
+        return n1 == n2 || n1 < n2;
     }
 
     public static bool operator <=(HighInteger n1, int i1) {
 
-        return n1 <= new HighInteger(i1);
+        return n1 == i1 || n1 < i1;
+    }
+
+    public static bool operator >=(HighInteger n1, HighInteger n2) {
+
+        return n1 == n2 || n1 > n2;
     }
 
     public static bool operator >=(HighInteger n1, int i1) {
 
-        return n1 >= new HighInteger(i1);
+        return n1 == i1 || n1 > i1;
     }
 
     public static HighInteger operator --(HighInteger n1) {
 
-        return new HighInteger( n1 - new HighInteger(1) );
+        return new HighInteger( n1 - 1 );
     }
 
     public static HighInteger operator ++(HighInteger n1) {
 
-        return new HighInteger(n1 + new HighInteger(1));
+        return new HighInteger(n1 + 1);
     }
 
     // Accesseurs ===================================================================================================
 
     public string HighIntegerNumber { get { return number; } set { number = value; } }
-
-    public string HighIntegerFormatedNumber { get { formatedNumber = number; return formatedNumber; } }
 }
