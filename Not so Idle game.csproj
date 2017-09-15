@@ -222,11 +222,12 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Assets\Scripts\Factory.cs" />
+    <Compile Include="Assets\Scripts\BigInteger.cs" />
     <Compile Include="Assets\Scripts\GameBoardManager.cs" />
     <Compile Include="Assets\Scripts\GameGUIManager.cs" />
     <Compile Include="Assets\Scripts\GameLoader.cs" />
     <Compile Include="Assets\Scripts\GameManager.cs" />
+    <Compile Include="Assets\Scripts\Generator.cs" />
     <Compile Include="Assets\Scripts\HighInteger.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

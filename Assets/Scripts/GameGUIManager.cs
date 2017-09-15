@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-using UnityEngine.UI;
+using UnityEngine.UI;   // UI
+
+using Keiwando.BigInteger; // BigInteger
 
 public class GameGUIManager : MonoBehaviour {
 
@@ -24,13 +26,11 @@ public class GameGUIManager : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
 
-        text_money.text = GameManager.instance.GameManagerMoney.ToString();
+        text_money.text = GameManager.instance.GetCurrencyAsVerboseString();
     }
 
     private void OnClickOnButton_clicker() {
 
-        Debug.Log("GameGUIManager - OnClickOnButton_clicker()");
-
-        GameManager.instance.GameManagerMoney += 1;
+        GameManager.instance.Earn( 1 );
     }
 }

@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+using Keiwando.BigInteger; // BigInteger
+
 public class GameBoardManager : MonoBehaviour {
 
     // Use this for initialization

@@ -53,6 +53,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7056d0331ca4dbb478ee18ccc01bca82, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  button_clicker: {fileID: 0}
+  text_money: {fileID: 0}
 --- !u!114 &114387331733580310
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -64,6 +66,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d277ead99ae307f45bdb8a1ebd85e6b4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  generatorPrefab: {fileID: 1250307800513740, guid: deef3dc06322e9146a00051e3b931419,
+    type: 2}
+  generatorParent: {fileID: 0}
 --- !u!114 &114901671095628014
 MonoBehaviour:
   m_ObjectHideFlags: 1
