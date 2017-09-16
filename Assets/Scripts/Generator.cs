@@ -62,7 +62,7 @@ public class Generator : MonoBehaviour {
         this.gameObject.name = "Factory_" + title;
     }
 
-    public void Reset(string _title, double _costBase, float _coefficient, double _productionBase, float _speedBase) {
+    public void SetStats(string _title, double _costBase, float _coefficient, double _productionBase, float _speedBase) {
 
         // donné changeantes
         title = _title;
@@ -90,6 +90,21 @@ public class Generator : MonoBehaviour {
         this.gameObject.name = "Factory_" + title;
     }
 
+    public void Reset() {
+
+        slider_time.value = 0;
+        time = 0.0f;
+        owned = 0;
+        multiplier = 0;
+
+        // calculs
+        CalculStats();
+        UpdateBuyPossibilities();
+
+        // mise à jour
+        UpdateTexts();
+    }
+
     void Update() {
 
         if (owned <= 0) return;
@@ -100,9 +115,9 @@ public class Generator : MonoBehaviour {
 
         if ( time >= speed ) {
 
-            time -= speed;
+            GameManager.instance.Earn((ulong)Math.Round( production * ( time / speed ) ));
 
-            GameManager.instance.Earn((ulong)Math.Round(production));
+            time = time % speed;
         }
     }
 
@@ -135,7 +150,7 @@ public class Generator : MonoBehaviour {
 
     private double CalculProductionTotal() {
 
-        return ( productionBase * owned ) * multiplier;
+        return ( ( productionBase * owned ) * multiplier ) * ( 1 + ( GameManager.instance.GameManagerPrestige / 100.0f ) );
     }
 
     private int CalculMultiplier() {
@@ -147,7 +162,7 @@ public class Generator : MonoBehaviour {
 
         float result = speedBase * Mathf.Pow(0.5f, multiplier - 1);
 
-        return ( result >= 0.01f )? result: 0.01f;
+        return result;
     }
 
     private int CalculMaxBuy() {
@@ -156,17 +171,7 @@ public class Generator : MonoBehaviour {
         double b = costBase;
         double r = coefficient;
         int k = owned;
-        ulong c = 0;
-
-        if ( GameManager.instance.GetPrimaryCurrency() > ulong.MaxValue) {
-
-            Debug.Log("/!\\ Generator - CalculMaxBuy() : primaryCurrency > ulong.MaxValue -> c is set to ulong.MaxValue");
-            c = ulong.MaxValue;
-        }
-        else {
-
-            c = Convert.ToUInt64(GameManager.instance.GetPrimaryCurrency().ToString(), 10);
-        }
+        double c = GameManager.instance.GetPrimaryCurrency();
 
         double n1 = ( (c * (r - 1)) / ( b * (Math.Pow(r, k)) ) ) + 1  ;
 
@@ -194,15 +199,15 @@ public class Generator : MonoBehaviour {
     public void UpdateTexts() {
 
         text_owned.text = "Owned : " + owned.ToString();
-        text_cost.text = "Cost : " + GameManager.instance.ToVerboseNumber( ( (ulong) Math.Round( cost ) ).ToString() );
-        text_production.text = "Prod : " + GameManager.instance.ToVerboseNumber(((ulong)Math.Round( production / speed )).ToString()) + "/s";
+        text_cost.text = "Cost : " + GameManager.instance.ToVerboseNumber( Math.Round( cost ) );
+        text_production.text = "Prod : " + GameManager.instance.ToVerboseNumber( Math.Round( production / speed ) ) + "/s";
         text_multiplier.text = "Multiplier : " + multiplier.ToString();
-        text_speed.text = "Speed : " + speed.ToString("0.00");
+        text_speed.text = "Speed : " + speed.ToString("0.0000");
     }
 
     public void OnClickOnButtonBuy() {
 
-        ulong buyCost = (ulong)Math.Round(cost);
+        double buyCost = Math.Round(cost);
 
         owned++;
         CalculStats();
@@ -213,7 +218,7 @@ public class Generator : MonoBehaviour {
 
     public void OnClickOnButtonBuyMax() {
 
-        ulong buyMaxCost = (ulong)Math.Round(CalculCost(buyMax));
+        double buyMaxCost = Math.Round(CalculCost(buyMax));
 
         owned += buyMax;
         CalculStats();

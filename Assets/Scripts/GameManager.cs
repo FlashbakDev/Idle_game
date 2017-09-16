@@ -4,11 +4,25 @@ using System.Collections.Generic;
 using UnityEngine;
 
 using Keiwando.BigInteger; // BigInteger
+using System.Globalization;
 
 public class GameManager : MonoBehaviour {
 
     // for the verbose string conversion
-    private static string[] suffixes = { "", "", "million", "milliard", "billion", "billiard", "trillion", "trilliard", "quadrillion", "quadrilliard", "quintillion", "quintilliard", "sextillion", "sextilliard", "septillion", "septilliard", "octillion", "octilliard", "nonillion", "nonilliard", "decillion", "decilliard" };
+    private string[] suffixes = { "", "",
+        " million", " billion", " trillion", " quadrillion", " quintillion", " sextillion", " septillion", " octillion", " nonillion", " decillion",
+        " undecillion", " duodecillion", " tredecillion", " quattuordecillion", " quindecillion", " sexdecillion", " septendecillion", " octodecillion", " novemdecillion", " vigintillion",
+        " unvigintillion", " duovigintillion", " trevigintillion", " quattuorvigintillion", " quinvigintillion", " sexvigintillion", " septenvigintillion", " octovigintillion", " novemvigintillion", " trigintillion",
+        " untrigintillion", " duotrigintillion", " tretrigintillion", " quattuortrigintillion", " quintrigintillion", " sextrigintillion", " septentrigintillion", " octotrigintillion", " novemtrigintillion", " quadragintillion",
+        " unquadragintillion", " duoquadragintillion", " trequadragintillion", " quattuorquadragintillion", " quinquadragintillion", " sexquadragintillion", " septenquadragintillion", " octoquadragintillion", " novemquadragintillion", " quinquagintillion",
+        " unquinquagintillion", " duoquinquagintillion", " trequinquagintillion", " quattuorquinquagintillion", " quinquinquagintillion", " sexquinquagintillion", " septenquinquagintillion", " octoquinquagintillion", " novemquinquagintillion", " sexagintillion",
+        " unsexagintillion", " duosexagintillion", " tresexagintillion", " quattuorsexagintillion", " quinsexagintillion", " sexsexagintillion", " septensexagintillion", " octosexagintillion", " novemsexagintillion", " septuagintillion",
+        " unseptuagintillion", " duoseptuagintillion", " treseptuagintillion", " quattuorseptuagintillion", " quinseptuagintillion", " sexseptuagintillion", " septenseptuagintillion", " octoseptuagintillion", " novemseptuagintillion", " octogintillion",
+        " unoctogintillion", " duooctogintillion", " treoctogintillion", " quattuoroctogintillion", " quinoctogintillion", " sexoctogintillion", " septenoctogintillion", " octooctogintillion", " novemoctogintillion", " nonagintillion",
+        " unnonagintillion", " duononagintillion", " trenonagintillion", " quattuornonagintillion", " quinnonagintillion", " sexnonagintillion", " septennonagintillion", " octononagintillion", " novemnonagintillion", " centillion",};
+
+    private NumberFormatInfo noSeparator_noDecimal;
+    private NumberFormatInfo coma_noDecimal;
 
     [SerializeField] private GameObject generatorPrefab;
     [SerializeField] private Transform generatorParent;
@@ -17,12 +31,14 @@ public class GameManager : MonoBehaviour {
     private GameBoardManager boardScript;
     private GameGUIManager GUIScript;
 
-    private BigInteger primaryCurrency;
-    private int prestige;
+    [SerializeField] private double primaryCurrency;
+    [SerializeField] private double lifeTimeCurrency;
+    [SerializeField] private ulong prestige;
+    [SerializeField] private ulong nextPrestige;
+    [SerializeField] private int layer;
+    [SerializeField] private List<Generator> generators;
 
     private float clock;
-
-    private List<Generator> generators;
 
     void Awake() {
 
@@ -56,13 +72,25 @@ public class GameManager : MonoBehaviour {
     //Initializes the game for each level.
     void InitGame() {
 
+        noSeparator_noDecimal = new CultureInfo("en-US", false).NumberFormat;
+        noSeparator_noDecimal.NumberGroupSeparator = "";
+        noSeparator_noDecimal.NumberDecimalDigits = 0;
+
+        coma_noDecimal = new CultureInfo("en-US", false).NumberFormat;
+        coma_noDecimal.NumberGroupSeparator = ",";
+        coma_noDecimal.NumberDecimalDigits = 0;
+
         //Call the SetupScene function of the BoardManager script, pass it current level number.
         boardScript.SetupScene( 0 );
 
         clock = 0f;
 
-        primaryCurrency = new BigInteger("0");
+        primaryCurrency = 0;
+        lifeTimeCurrency = 0;
         prestige = 0;
+        layer = 1;
+
+        nextPrestige = calculNextPrestige();
 
         generators = new List<Generator>();
 
@@ -83,19 +111,12 @@ public class GameManager : MonoBehaviour {
     private Generator CreateNewGenerator(string _title, double _costBase, float _coefficient, double _productionBase, float _speedBase) {
 
         Generator generatorTemp = Instantiate(generatorPrefab, generatorParent).GetComponent<Generator>();
-        generatorTemp.Reset(_title, _costBase, _coefficient, _productionBase, _speedBase);
+        generatorTemp.SetStats(_title, _costBase, _coefficient, _productionBase, _speedBase);
 
         return generatorTemp;
     }
 
-    public bool Buy( ulong price ) {
-
-        if (!CanBuy(price)) {
-
-            Debug.Log("GameManager - Buy( ulong price = " + ToVerboseNumber(price.ToString()) + " ) : ERROR price > currency ! ( currency = " + GetCurrencyAsVerboseString() + " ) ");
-
-            return false;
-        }
+    public bool Buy( double price ) {
 
         primaryCurrency -= price;
 
@@ -104,10 +125,12 @@ public class GameManager : MonoBehaviour {
         return true;
     }
 
-    public void Earn(ulong amount) {
+    public void Earn( double amount ) {
 
         primaryCurrency += amount;
+        lifeTimeCurrency += amount;
 
+        nextPrestige = calculNextPrestige();
         UpdateGeneratorsBuyPossibilities();
     }
 
@@ -119,51 +142,54 @@ public class GameManager : MonoBehaviour {
         }
     }
 
-    public bool CanBuy( ulong price) {
+    public void ResetGenerators() {
+
+        foreach (Generator g in generators) {
+
+            g.Reset();
+        }
+    }
+
+    public bool CanBuy( double price ) {
 
         return primaryCurrency >= price;
     }
 
-    public string GetCurrencyAsVerboseString() {
+    public string GetPrimaryCurrencyAsVerboseString() {
 
-        return ToVerboseNumber( primaryCurrency.ToString() );
+        return ToVerboseNumber( primaryCurrency );
     }
 
-    public BigInteger GetPrimaryCurrency() {
+    public double GetPrimaryCurrency() {
 
         return primaryCurrency;
     }
 
-    public string ToVerboseNumber(string n) {
+    public string ToVerboseNumber(double n) {
 
-        string stringValue = n.ToString();
+        string stringValue = n.ToString("N", noSeparator_noDecimal);
         int stringValueLength = stringValue.Length;
-        string result = "";
 
-        string suffix = ((stringValueLength - 1) / 3 < suffixes.Length) ? suffixes[(stringValueLength - 1) / 3] : "???";
-        if (suffix != suffixes[0] && (stringValueLength % 3 != 1 || stringValue[0] != '1')) suffix = suffix + "s";
+        string suffix = "";
 
-        if (stringValueLength > 6)
-            for (int i = 0; i < stringValueLength; i++) {
+        if (stringValueLength > 6) {
 
-                if (i % 3 == 0 && i != 0) { result = "," + result; }
+            suffix = ((stringValueLength - 1) / 3 < suffixes.Length) ? suffixes[(stringValueLength - 1) / 3] : " Infinity";
+            if (suffix != suffixes[0] && (stringValueLength % 3 != 1 || stringValue[0] != '1')) suffix = suffix + "s";
 
-                result = stringValue[stringValueLength - i - 1] + result;
-            }
-        else
-            for (int i = 0; i < stringValueLength; i++) {
+            string nWithComa = n.ToString("N", CultureInfo.InvariantCulture);
 
-                if (i % 3 == 0 && i != 0) { result = " " + result; }
-
-                result = stringValue[stringValueLength - i - 1] + result;
-            }
-
-        if (result.IndexOf(',') != -1) {
-
-            result = result.Substring(0, result.IndexOf(',') + 4);
+            return nWithComa.Substring(0, nWithComa.IndexOf(',') + 3) + suffix;
         }
 
-        return (suffix.Length > 0) ? result + " " + suffix : result ;
+        return n.ToString("N", coma_noDecimal );
+    }
+
+    public ulong calculNextPrestige() {
+
+        double cl = lifeTimeCurrency;
+
+        return (ulong)( 150 * Math.Sqrt( ( cl ) / ( Math.Pow( 10, 15 ) ) ) );
     }
 
     // Update is called once per frame
@@ -177,11 +203,25 @@ public class GameManager : MonoBehaviour {
         primaryCurrency += 1;
     }
 
+    public void GoDeeper() {
+
+        layer++;
+        prestige += nextPrestige;
+
+        primaryCurrency = 0;
+        lifeTimeCurrency = 0;
+        nextPrestige = calculNextPrestige();
+
+        ResetGenerators();
+    }
+
     // Accesseurs ===================================================================================================
 
     public GameBoardManager GameManagerBoardScript { get { return boardScript; } set { boardScript = value; } }
 
     public GameGUIManager GameManagerGUIScript { get { return GUIScript; } set { GUIScript = value; } }
 
-    public int GameManagerPrestige { get { return prestige; } set { prestige = value; } }
+    public ulong GameManagerPrestige { get { return prestige; } set { prestige = value; } }
+
+    public ulong GameManagerNextPrestige { get { return nextPrestige; } set { nextPrestige = value; } }
 }
