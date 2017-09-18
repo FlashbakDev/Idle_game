@@ -229,6 +229,7 @@
     <Compile Include="Assets\Scripts\GameManager.cs" />
     <Compile Include="Assets\Scripts\Generator.cs" />
     <Compile Include="Assets\Scripts\HighInteger.cs" />
+    <Compile Include="Assets\Scripts\MatrixRain.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Shaders\Matrix.shader" />

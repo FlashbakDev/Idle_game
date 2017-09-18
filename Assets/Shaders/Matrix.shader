@@ -32,6 +32,7 @@
 			}
 
 			float texelValue(float2 ipos, float n){
+
 				for(float i = 0.; i < 5.; i++){
 					for(float j = 0.; j < 3.; j++)
 					{
@@ -48,6 +49,7 @@
 			float _Density;
 
 			float char(float2 st, float n){
+
 					st.x = st.x * 2. - .5;
 					st.y = st.y * 1.2 - .1;
 
@@ -57,7 +59,7 @@
 
 					float digit = 0.0;
 					
-					if (n < 1. ) { digit = 9712.; } 
+					if (n < 1. ) { digit = 9712.0; } 
 					else if (n < 2. ) { digit = 21158.0; } 
 					else if (n < 3. ) { digit = 25231.0; } 
 					else if (n < 4. ) { digit = 23187.0; } 
@@ -77,7 +79,29 @@
 					else if (n < 18. ) { digit = 31406.0; }
 					else if (n < 19. ) { digit = 30864.0; }
 					else if (n < 20. ) { digit = 31208.0; }
-					else { digit = 1.0; }
+					else { digit = 1.0;}
+
+					/*if (n < 1. ) { digit = 0x30A0; } 
+					else if (n < 2. ) { digit = 0x30A + 1; } 
+					else if (n < 3. ) { digit = 0x30A + 2; } 
+					else if (n < 4. ) { digit = 0x30A + 3; } 
+					else if (n < 5. ) { digit = 0x30A + 4; } 
+					else if (n < 6. ) { digit = 0x30A + 5; } 
+					else if (n < 7. ) { digit = 0x30A + 6; } 
+					else if (n < 8. ) { digit = 0x30A + 7; } 
+					else if (n < 9. ) { digit = 0x30A + 8; } 
+					else if (n < 10. ) { digit = 0x30A + 9; }
+					else if (n < 11. ) { digit = 0x30A + 10; }
+					else if (n < 12. ) { digit = 0x30A + 11; }
+					else if (n < 13. ) { digit = 0x30A + 12; }
+					else if (n < 14. ) { digit = 0x30A + 13; }
+					else if (n < 15. ) { digit = 0x30A + 14; }
+					else if (n < 16. ) { digit = 0x30A + 15; }
+					else if (n < 17. ) { digit = 0x30A + 16; }
+					else if (n < 18. ) { digit = 0x30A + 17; }
+					else if (n < 19. ) { digit = 0x30A + 18; }
+					else if (n < 20. ) { digit = 0x30A + 19; }
+					else { digit = 1.0; }*/
 
 					float tex = texelValue(ipos, digit);
 
